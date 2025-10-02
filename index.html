@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Shoe Placement Tool</title>
+  <title>Best Tennis Shoe of 2025</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -11,6 +11,14 @@
   <div class="flex flex-col items-center min-h-screen py-8 space-y-6">
   <!-- Dropdowns -->
   <div class="flex flex-col space-y-4 w-64">
+    <!-- Background dropdown -->
+    <select id="background-select" class="w-full px-4 py-2 border border-gray-300 rounded shadow">
+      <option value="quarterfinals.png">Quarter-finals</option>
+      <option value="semifinals.png">Semi-finals</option>
+      <option value="final.png">Final</option>
+    </select>
+
+    <!-- Shoe dropdowns -->
     <select id="shoe1-select" class="w-full px-4 py-2 border border-gray-300 rounded shadow">
       <option value="">Select first shoe</option>
     </select>
@@ -23,7 +31,7 @@
     <!-- Template display container -->
     <div id="canvas-container" class="relative border shadow-lg w-full max-w-md">
       <img id="template" 
-           src="images/template.png" 
+           src="images/quarterfinals.png" 
            alt="Template" 
            class="w-full h-auto pointer-events-none select-none">
       <div id="shoe-layer" class="absolute top-0 left-0 w-full h-full"></div>
@@ -44,17 +52,34 @@
     const shoeBox2 = { x: 251, y: 732, width: 574, height: 325 };
 
     // Shoe data
-    const shoes = [
-      { name: "Red Sneaker", image: "images/shoe1.png" },
-      { name: "Blue Runner", image: "images/shoe2.png" }
-    ];
+    // Shoe data
+  const shoes = [
+    { name: "Asics Gel Resolution X", image: "images/Asics-Gel-Resolution-X.png" },
+    { name: "Adidas Barricade 13", image: "images/adidas-Barricade-13.png" },
+    { name: "Nike Zoom GP Challenge", image: "images/Nike-Zoom-GP-Challenge.png" },
+    { name: "Nike Zoom Vapor", image: "images/Nike-Zoom-Vapor.png" },
+    { name: "Nike Vapor Pro 3", image: "images/Nike-Vapor-Pro-3.png" },
+    { name: "Asics Solution Speed FF 3", image: "images/Asics-Solution-Speed-FF-3.png" },
+    { name: "K-Swiss Hypercourt Express 2", image: "images/K-Swiss-Hypercourt-Express-2.png" },
+    { name: "Asics FF 3 Novak", image: "images/Asics-FF-3-Novak.png" },
+    { name: "Wilson Rush Pro 4.5", image: "images/Wilson-Rush-Pro-4.5.png" },
+    { name: "ON Roger Pro Fire", image: "images/ON-Roger-Pro-Fire.png" },
+    { name: "On Running Roger Pro 2", image: "images/On-Running-Roger-Pro-2.png" },
+    { name: "Head Endure Pro BOA", image: "images/Head-Endure-Pro-BOA.png" },
+    { name: "Adidas Adizero Ubersonic 5", image: "images/Adidas-adizero-Ubersonic-5.png" },
+    { name: "Lacoste AG LT 23 Ultra", image: "images/Lacoste-AG-LT-23-Ultra.png" },
+    { name: "Yonex PC Eclipsion 5", image: "images/Yonex-PC-Eclipsion-5.png" },
+    { name: "Adidas Adizero Cybersonic 2", image: "images/Adidas-adizero-Cybersonic2.png" }
+  ];
 
+
+    const backgroundSelect = document.getElementById('background-select');
     const shoe1Select = document.getElementById('shoe1-select');
     const shoe2Select = document.getElementById('shoe2-select');
     const shoeLayer = document.getElementById('shoe-layer');
     const templateImg = document.getElementById('template');
 
-    // Populate dropdowns
+    // Populate shoe dropdowns
     shoes.forEach((shoe, index) => {
       const option1 = document.createElement('option');
       option1.value = index;
@@ -86,8 +111,8 @@
         const displayX = box.x * scaleX;
         const displayY = box.y * scaleY;
 
-        const displayWidth = displayImg.width * scaleX;
-        const displayHeight = displayImg.height * scaleY;
+        const displayWidth = box.width * scaleX;
+        const displayHeight = box.height * scaleY;
 
         img.style.width = `${displayWidth}px`;
         img.style.height = `${displayHeight}px`;
@@ -107,6 +132,13 @@
 
     shoe1Select.addEventListener('change', updateDisplay);
     shoe2Select.addEventListener('change', updateDisplay);
+
+    // Update template when user changes background
+    backgroundSelect.addEventListener('change', () => {
+      templateImg.src = `images/${backgroundSelect.value}`;
+      updateDisplay();
+    });
+
     window.addEventListener('resize', updateDisplay);
 
     // Download full-size image with both shoes
@@ -117,7 +149,7 @@
       const ctx = canvas.getContext('2d');
 
       const template = new Image();
-      template.src = 'images/template.png';
+      template.src = `images/${backgroundSelect.value}`;
       template.onload = () => {
         ctx.drawImage(template, 0, 0, BASE_WIDTH, BASE_HEIGHT);
 
@@ -127,7 +159,7 @@
           const shoe1 = new Image();
           shoe1.src = shoes[selectedIndex1].image;
           shoe1.onload = () => {
-            ctx.drawImage(shoe1, shoeBox1.x, shoeBox1.y, shoe1.width, shoe1.height);
+            ctx.drawImage(shoe1, shoeBox1.x, shoeBox1.y, shoeBox1.width, shoeBox1.height);
 
             // Second shoe
             const selectedIndex2 = shoe2Select.value;
@@ -135,7 +167,7 @@
               const shoe2 = new Image();
               shoe2.src = shoes[selectedIndex2].image;
               shoe2.onload = () => {
-                ctx.drawImage(shoe2, shoeBox2.x, shoeBox2.y, shoe2.width, shoe2.height);
+                ctx.drawImage(shoe2, shoeBox2.x, shoeBox2.y, shoeBox2.width, shoeBox2.height);
                 const link = document.createElement('a');
                 link.download = 'shoe-placement.png';
                 link.href = canvas.toDataURL('image/png');
@@ -155,7 +187,7 @@
             const shoe2 = new Image();
             shoe2.src = shoes[selectedIndex2].image;
             shoe2.onload = () => {
-              ctx.drawImage(shoe2, shoeBox2.x, shoeBox2.y, shoe2.width, shoe2.height);
+              ctx.drawImage(shoe2, shoeBox2.x, shoeBox2.y, shoeBox2.width, shoeBox2.height);
               const link = document.createElement('a');
               link.download = 'shoe-placement.png';
               link.href = canvas.toDataURL('image/png');
