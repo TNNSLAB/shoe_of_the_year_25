@@ -9,9 +9,13 @@
 <body class="bg-gray-100">
 
   <div class="flex flex-col items-center min-h-screen py-8 space-y-6">
-    <!-- Dropdown -->
-    <select id="shoe-select" class="px-4 py-2 border border-gray-300 rounded shadow">
-      <option value="">Select a shoe</option>
+    <!-- Dropdowns -->
+    <select id="shoe1-select" class="px-4 py-2 border border-gray-300 rounded shadow">
+      <option value="">Select first shoe</option>
+    </select>
+
+    <select id="shoe2-select" class="px-4 py-2 border border-gray-300 rounded shadow">
+      <option value="">Select second shoe</option>
     </select>
 
     <!-- Template display container -->
@@ -33,13 +37,9 @@
     const BASE_WIDTH = 1080;
     const BASE_HEIGHT = 1920;
 
-    // Bounding box for shoe placement
-    const shoeBox = {
-      x: 251,
-      y: 376,
-      width: 650,
-      height: 322
-    };
+    // Bounding boxes
+    const shoeBox1 = { x: 251, y: 376, width: 650, height: 322 };
+    const shoeBox2 = { x: 251, y: 732, width: 574, height: 325 };
 
     // Shoe data
     const shoes = [
@@ -47,65 +47,67 @@
       { name: "Blue Runner", image: "images/shoe2.png" }
     ];
 
-    const shoeSelect = document.getElementById('shoe-select');
+    const shoe1Select = document.getElementById('shoe1-select');
+    const shoe2Select = document.getElementById('shoe2-select');
     const shoeLayer = document.getElementById('shoe-layer');
     const templateImg = document.getElementById('template');
 
-    // Populate dropdown
+    // Populate dropdowns
     shoes.forEach((shoe, index) => {
-      const option = document.createElement('option');
-      option.value = index;
-      option.textContent = shoe.name;
-      shoeSelect.appendChild(option);
+      const option1 = document.createElement('option');
+      option1.value = index;
+      option1.textContent = shoe.name;
+      shoe1Select.appendChild(option1);
+
+      const option2 = document.createElement('option');
+      option2.value = index;
+      option2.textContent = shoe.name;
+      shoe2Select.appendChild(option2);
     });
 
-    // Place shoe in bounding box (browser display scaled)
-    function placeShoe(index) {
-      shoeLayer.innerHTML = '';
-      if (index !== "") {
-        const shoe = shoes[index];
+    function placeShoe(displayIndex, box) {
+      if (displayIndex === "") return null;
 
-        const img = document.createElement('img');
-        img.src = shoe.image;
-        img.className = 'absolute';
+      const img = document.createElement('img');
+      img.src = shoes[displayIndex].image;
+      img.className = 'absolute';
 
-        const displayImg = new Image();
-        displayImg.src = shoe.image;
-        displayImg.onload = () => {
-          // Current displayed template size
-          const templateWidth = templateImg.clientWidth;
-          const templateHeight = templateImg.clientHeight;
+      const displayImg = new Image();
+      displayImg.src = shoes[displayIndex].image;
+      displayImg.onload = () => {
+        const templateWidth = templateImg.clientWidth;
+        const templateHeight = templateImg.clientHeight;
 
-          const scaleX = templateWidth / BASE_WIDTH;
-          const scaleY = templateHeight / BASE_HEIGHT;
+        const scaleX = templateWidth / BASE_WIDTH;
+        const scaleY = templateHeight / BASE_HEIGHT;
 
-          // Scale and position shoe for display
-          const displayX = shoeBox.x * scaleX;
-          const displayY = shoeBox.y * scaleY;
+        const displayX = box.x * scaleX;
+        const displayY = box.y * scaleY;
 
-          // Scale shoe to fit bounding box proportionally
-          const displayWidth = displayImg.width * scaleX;
-          const displayHeight = displayImg.height * scaleY;
+        const displayWidth = displayImg.width * scaleX;
+        const displayHeight = displayImg.height * scaleY;
 
-          img.style.width = `${displayWidth}px`;
-          img.style.height = `${displayHeight}px`;
-          img.style.left = `${displayX}px`;
-          img.style.top = `${displayY}px`;
+        img.style.width = `${displayWidth}px`;
+        img.style.height = `${displayHeight}px`;
+        img.style.left = `${displayX}px`;
+        img.style.top = `${displayY}px`;
 
-          shoeLayer.appendChild(img);
-        };
-      }
+        shoeLayer.appendChild(img);
+      };
+      return img;
     }
 
-    shoeSelect.addEventListener('change', e => {
-      placeShoe(e.target.value);
-    });
+    function updateDisplay() {
+      shoeLayer.innerHTML = '';
+      placeShoe(shoe1Select.value, shoeBox1);
+      placeShoe(shoe2Select.value, shoeBox2);
+    }
 
-    window.addEventListener('resize', () => {
-      if (shoeSelect.value !== "") placeShoe(shoeSelect.value);
-    });
+    shoe1Select.addEventListener('change', updateDisplay);
+    shoe2Select.addEventListener('change', updateDisplay);
+    window.addEventListener('resize', updateDisplay);
 
-    // Download full-size image (1080x1920) with shoes at original size (520x330)
+    // Download full-size image with both shoes
     document.getElementById('download-btn').addEventListener('click', () => {
       const canvas = document.createElement('canvas');
       canvas.width = BASE_WIDTH;
@@ -117,24 +119,52 @@
       template.onload = () => {
         ctx.drawImage(template, 0, 0, BASE_WIDTH, BASE_HEIGHT);
 
-        const selectedIndex = shoeSelect.value;
-        if (selectedIndex !== "") {
-          const shoe = new Image();
-          shoe.src = shoes[selectedIndex].image;
-          shoe.onload = () => {
-            // Place at bounding box coordinates using original size
-            ctx.drawImage(shoe, shoeBox.x, shoeBox.y, shoe.width, shoe.height);
+        // First shoe
+        const selectedIndex1 = shoe1Select.value;
+        if (selectedIndex1 !== "") {
+          const shoe1 = new Image();
+          shoe1.src = shoes[selectedIndex1].image;
+          shoe1.onload = () => {
+            ctx.drawImage(shoe1, shoeBox1.x, shoeBox1.y, shoe1.width, shoe1.height);
+
+            // Second shoe
+            const selectedIndex2 = shoe2Select.value;
+            if (selectedIndex2 !== "") {
+              const shoe2 = new Image();
+              shoe2.src = shoes[selectedIndex2].image;
+              shoe2.onload = () => {
+                ctx.drawImage(shoe2, shoeBox2.x, shoeBox2.y, shoe2.width, shoe2.height);
+                const link = document.createElement('a');
+                link.download = 'shoe-placement.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+              };
+            } else {
+              const link = document.createElement('a');
+              link.download = 'shoe-placement.png';
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+            }
+          };
+        } else {
+          // Only template or second shoe
+          const selectedIndex2 = shoe2Select.value;
+          if (selectedIndex2 !== "") {
+            const shoe2 = new Image();
+            shoe2.src = shoes[selectedIndex2].image;
+            shoe2.onload = () => {
+              ctx.drawImage(shoe2, shoeBox2.x, shoeBox2.y, shoe2.width, shoe2.height);
+              const link = document.createElement('a');
+              link.download = 'shoe-placement.png';
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+            };
+          } else {
             const link = document.createElement('a');
             link.download = 'shoe-placement.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-          };
-        } else {
-          // Only template
-          const link = document.createElement('a');
-          link.download = 'shoe-placement.png';
-          link.href = canvas.toDataURL('image/png');
-          link.click();
+          }
         }
       };
     });
