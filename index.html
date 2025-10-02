@@ -59,7 +59,7 @@
       shoeSelect.appendChild(option);
     });
 
-    // Place shoe in bounding box (browser display)
+    // Place shoe in bounding box (browser display scaled)
     function placeShoe(index) {
       shoeLayer.innerHTML = '';
       if (index !== "") {
@@ -72,15 +72,25 @@
         const displayImg = new Image();
         displayImg.src = shoe.image;
         displayImg.onload = () => {
-          // Scale proportionally to fit bounding box
-          const ratio = Math.min(shoeBox.width / displayImg.width, shoeBox.height / displayImg.height);
-          const displayWidth = displayImg.width * ratio;
-          const displayHeight = displayImg.height * ratio;
+          // Current displayed template size
+          const templateWidth = templateImg.clientWidth;
+          const templateHeight = templateImg.clientHeight;
+
+          const scaleX = templateWidth / BASE_WIDTH;
+          const scaleY = templateHeight / BASE_HEIGHT;
+
+          // Scale and position shoe for display
+          const displayX = shoeBox.x * scaleX;
+          const displayY = shoeBox.y * scaleY;
+
+          // Scale shoe to fit bounding box proportionally
+          const displayWidth = displayImg.width * scaleX;
+          const displayHeight = displayImg.height * scaleY;
 
           img.style.width = `${displayWidth}px`;
           img.style.height = `${displayHeight}px`;
-          img.style.left = `${shoeBox.x}px`;
-          img.style.top = `${shoeBox.y}px`;
+          img.style.left = `${displayX}px`;
+          img.style.top = `${displayY}px`;
 
           shoeLayer.appendChild(img);
         };
@@ -112,8 +122,8 @@
           const shoe = new Image();
           shoe.src = shoes[selectedIndex].image;
           shoe.onload = () => {
-            ctx.drawImage(shoe, shoeBox.x, shoeBox.y, shoe.width, shoe.height); // original size
-            // Download
+            // Place at bounding box coordinates using original size
+            ctx.drawImage(shoe, shoeBox.x, shoeBox.y, shoe.width, shoe.height);
             const link = document.createElement('a');
             link.download = 'shoe-placement.png';
             link.href = canvas.toDataURL('image/png');
