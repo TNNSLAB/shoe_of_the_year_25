@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shoe Placement Tool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="flex flex-col items-center min-h-screen py-8 space-y-6">
+    <!-- Dropdown -->
+    <select id="shoe-select" class="px-4 py-2 border border-gray-300 rounded shadow">
+      <option value="">Select a shoe</option>
+    </select>
+
+    <!-- Canvas Container -->
+    <div id="canvas-container" class="relative border shadow-lg w-full max-w-xl">
+      <!-- Template Image -->
+      <img id="template" 
+           src="images/template.png" 
+           alt="Template" 
+           class="w-full h-auto pointer-events-none select-none">
+
+      <!-- Shoe images will be inserted here -->
+      <div id="shoe-layer" class="absolute top-0 left-0 w-full h-full"></div>
+    </div>
+
+    <!-- Download Button -->
+    <button id="download-btn" class="px-6 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700">
+      Download Image
+    </button>
+  </div>
+
+  <script>
+    const BASE_WIDTH = 1080;
+    const BASE_HEIGHT = 1920;
+
+    // Shoes
+    const shoes = [
+      { name: "Red Sneaker", image: "images/shoe1.png", x: 200, y: 400 },
+      { name: "Blue Runner", image: "images/shoe2.png", x: 500, y: 700 }
+    ];
+
+    const shoeSelect = document.getElementById('shoe-select');
+    const shoeLayer = document.getElementById('shoe-layer');
+    const templateImg = document.getElementById('template');
+    const container = document.getElementById('canvas-container');
+
+    // Populate dropdown
+    shoes.forEach((shoe, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = shoe.name;
+      shoeSelect.appendChild(option);
+    });
+
+    function placeShoe(index) {
+      shoeLayer.innerHTML = '';
+      if (index !== "") {
+        const shoe = shoes[index];
+
+        // Scale position to current displayed template size
+        const scaleX = templateImg.clientWidth / BASE_WIDTH;
+        const scaleY = templateImg.clientHeight / BASE_HEIGHT;
+
+        const img = document.createElement('img');
+        img.src = shoe.image;
+        img.className = 'absolute';
+        img.style.left = `${shoe.x * scaleX}px`;
+        img.style.top = `${shoe.y * scaleY}px`;
+        img.style.width = 'auto';
+        img.style.height = 'auto';
+        shoeLayer.appendChild(img);
+      }
+    }
+
+    shoeSelect.addEventListener('change', e => {
+      placeShoe(e.target.value);
+    });
+
+    window.addEventListener('resize', () => {
+      if (shoeSelect.value !== "") placeShoe(shoeSelect.value);
+    });
+
+    // Download final result at original template size
+    document.getElementById('download-btn').addEventListener('click', () => {
+      html2canvas(container, {
+        width: BASE_WIDTH,
+        height: BASE_HEIGHT,
+        scale: 1,
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'shoe-placement.png';
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+    });
+  </script>
+
+</body>
+</html>
