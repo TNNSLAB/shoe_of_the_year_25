@@ -5,7 +5,6 @@
   <title>Shoe Placement Tool</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-gray-100">
 
@@ -15,15 +14,12 @@
       <option value="">Select a shoe</option>
     </select>
 
-    <!-- Canvas Container -->
-    <div id="canvas-container" class="relative border shadow-lg w-full max-w-xl">
-      <!-- Template Image -->
+    <!-- Template display container -->
+    <div id="canvas-container" class="relative border shadow-lg w-full max-w-md">
       <img id="template" 
            src="images/template.png" 
            alt="Template" 
            class="w-full h-auto pointer-events-none select-none">
-
-      <!-- Shoe images will be inserted here -->
       <div id="shoe-layer" class="absolute top-0 left-0 w-full h-full"></div>
     </div>
 
@@ -37,7 +33,7 @@
     const BASE_WIDTH = 1080;
     const BASE_HEIGHT = 1920;
 
-    // Shoes
+    // Shoe data
     const shoes = [
       { name: "Red Sneaker", image: "images/shoe1.png", x: 200, y: 400 },
       { name: "Blue Runner", image: "images/shoe2.png", x: 500, y: 700 }
@@ -56,12 +52,13 @@
       shoeSelect.appendChild(option);
     });
 
+    // Display selected shoe on template
     function placeShoe(index) {
       shoeLayer.innerHTML = '';
       if (index !== "") {
         const shoe = shoes[index];
 
-        // Scale position to current displayed template size
+        // Scale position for current displayed template size
         const scaleX = templateImg.clientWidth / BASE_WIDTH;
         const scaleY = templateImg.clientHeight / BASE_HEIGHT;
 
@@ -84,19 +81,40 @@
       if (shoeSelect.value !== "") placeShoe(shoeSelect.value);
     });
 
-    // Download final result at original template size
+    // Download full-size 1080x1920 image
     document.getElementById('download-btn').addEventListener('click', () => {
-      html2canvas(container, {
-        width: BASE_WIDTH,
-        height: BASE_HEIGHT,
-        scale: 1,
-        useCORS: true
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'shoe-placement.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      });
+      const canvas = document.createElement('canvas');
+      canvas.width = BASE_WIDTH;
+      canvas.height = BASE_HEIGHT;
+      const ctx = canvas.getContext('2d');
+
+      const template = new Image();
+      template.src = 'images/template.png';
+      template.onload = () => {
+        // Draw template at full size
+        ctx.drawImage(template, 0, 0, BASE_WIDTH, BASE_HEIGHT);
+
+        // Draw selected shoe if exists
+        const selectedIndex = shoeSelect.value;
+        if (selectedIndex !== "") {
+          const shoe = new Image();
+          shoe.src = shoes[selectedIndex].image;
+          shoe.onload = () => {
+            ctx.drawImage(shoe, shoes[selectedIndex].x, shoes[selectedIndex].y);
+            // Download
+            const link = document.createElement('a');
+            link.download = 'shoe-placement.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          };
+        } else {
+          // No shoe selected, just download template
+          const link = document.createElement('a');
+          link.download = 'shoe-placement.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+      };
     });
   </script>
 
