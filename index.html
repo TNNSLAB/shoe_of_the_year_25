@@ -32,10 +32,11 @@
   <script>
     const BASE_WIDTH = 1080;
     const BASE_HEIGHT = 1920;
+    const DISPLAY_SCALE = 0.6; // Scale shoe display in browser
 
-    // Shoe data
+    // Shoe data with positions
     const shoes = [
-      { name: "Red Sneaker", image: "images/shoe1.png", x: 200, y: 400 },
+      { name: "Red Sneaker", image: "images/shoe1.png", x: 335, y: 620 },
       { name: "Blue Runner", image: "images/shoe2.png", x: 500, y: 700 }
     ];
 
@@ -52,13 +53,12 @@
       shoeSelect.appendChild(option);
     });
 
-    // Display selected shoe on template
+    // Display selected shoe on template (scaled for browser)
     function placeShoe(index) {
       shoeLayer.innerHTML = '';
       if (index !== "") {
         const shoe = shoes[index];
 
-        // Scale position for current displayed template size
         const scaleX = templateImg.clientWidth / BASE_WIDTH;
         const scaleY = templateImg.clientHeight / BASE_HEIGHT;
 
@@ -67,7 +67,7 @@
         img.className = 'absolute';
         img.style.left = `${shoe.x * scaleX}px`;
         img.style.top = `${shoe.y * scaleY}px`;
-        img.style.width = 'auto';
+        img.style.width = `${DISPLAY_SCALE * 150}px`; // Adjust for smaller display (can be dynamic)
         img.style.height = 'auto';
         shoeLayer.appendChild(img);
       }
@@ -81,7 +81,7 @@
       if (shoeSelect.value !== "") placeShoe(shoeSelect.value);
     });
 
-    // Download full-size 1080x1920 image
+    // Download full-size 1080x1920 image with shoes at original size
     document.getElementById('download-btn').addEventListener('click', () => {
       const canvas = document.createElement('canvas');
       canvas.width = BASE_WIDTH;
@@ -94,7 +94,6 @@
         // Draw template at full size
         ctx.drawImage(template, 0, 0, BASE_WIDTH, BASE_HEIGHT);
 
-        // Draw selected shoe if exists
         const selectedIndex = shoeSelect.value;
         if (selectedIndex !== "") {
           const shoe = new Image();
