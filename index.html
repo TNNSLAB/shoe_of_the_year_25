@@ -32,18 +32,24 @@
   <script>
     const BASE_WIDTH = 1080;
     const BASE_HEIGHT = 1920;
-    const DISPLAY_SCALE = 1.0; // Scale shoe display in browser
 
-    // Shoe data with positions
+    // Bounding box for shoe placement
+    const shoeBox = {
+      x: 251,
+      y: 376,
+      width: 650,
+      height: 322
+    };
+
+    // Shoe data
     const shoes = [
-      { name: "Red Sneaker", image: "images/shoe1.png", x: 335, y: 620 },
-      { name: "Blue Runner", image: "images/shoe2.png", x: 500, y: 700 }
+      { name: "Red Sneaker", image: "images/shoe1.png" },
+      { name: "Blue Runner", image: "images/shoe2.png" }
     ];
 
     const shoeSelect = document.getElementById('shoe-select');
     const shoeLayer = document.getElementById('shoe-layer');
     const templateImg = document.getElementById('template');
-    const container = document.getElementById('canvas-container');
 
     // Populate dropdown
     shoes.forEach((shoe, index) => {
@@ -53,23 +59,31 @@
       shoeSelect.appendChild(option);
     });
 
-    // Display selected shoe on template (scaled for browser)
+    // Place shoe in bounding box (browser display)
     function placeShoe(index) {
       shoeLayer.innerHTML = '';
       if (index !== "") {
         const shoe = shoes[index];
 
-        const scaleX = templateImg.clientWidth / BASE_WIDTH;
-        const scaleY = templateImg.clientHeight / BASE_HEIGHT;
-
         const img = document.createElement('img');
         img.src = shoe.image;
         img.className = 'absolute';
-        img.style.left = `${shoe.x * scaleX}px`;
-        img.style.top = `${shoe.y * scaleY}px`;
-        img.style.width = `${DISPLAY_SCALE * 330}px`; // Adjust for smaller display (can be dynamic)
-        img.style.height = 'auto';
-        shoeLayer.appendChild(img);
+
+        const displayImg = new Image();
+        displayImg.src = shoe.image;
+        displayImg.onload = () => {
+          // Scale proportionally to fit bounding box
+          const ratio = Math.min(shoeBox.width / displayImg.width, shoeBox.height / displayImg.height);
+          const displayWidth = displayImg.width * ratio;
+          const displayHeight = displayImg.height * ratio;
+
+          img.style.width = `${displayWidth}px`;
+          img.style.height = `${displayHeight}px`;
+          img.style.left = `${shoeBox.x}px`;
+          img.style.top = `${shoeBox.y}px`;
+
+          shoeLayer.appendChild(img);
+        };
       }
     }
 
@@ -81,7 +95,7 @@
       if (shoeSelect.value !== "") placeShoe(shoeSelect.value);
     });
 
-    // Download full-size 1080x1920 image with shoes at original size
+    // Download full-size image (1080x1920) with shoes at original size (520x330)
     document.getElementById('download-btn').addEventListener('click', () => {
       const canvas = document.createElement('canvas');
       canvas.width = BASE_WIDTH;
@@ -91,7 +105,6 @@
       const template = new Image();
       template.src = 'images/template.png';
       template.onload = () => {
-        // Draw template at full size
         ctx.drawImage(template, 0, 0, BASE_WIDTH, BASE_HEIGHT);
 
         const selectedIndex = shoeSelect.value;
@@ -99,7 +112,7 @@
           const shoe = new Image();
           shoe.src = shoes[selectedIndex].image;
           shoe.onload = () => {
-            ctx.drawImage(shoe, shoes[selectedIndex].x, shoes[selectedIndex].y);
+            ctx.drawImage(shoe, shoeBox.x, shoeBox.y, shoe.width, shoe.height); // original size
             // Download
             const link = document.createElement('a');
             link.download = 'shoe-placement.png';
@@ -107,7 +120,7 @@
             link.click();
           };
         } else {
-          // No shoe selected, just download template
+          // Only template
           const link = document.createElement('a');
           link.download = 'shoe-placement.png';
           link.href = canvas.toDataURL('image/png');
